@@ -95,17 +95,18 @@ transmit_code($hCard,$tmpdata,0);
 $tmpdata = $VerifyCount;
 transmit_code($hCard,$tmpdata,1);
 
-print 'Next step is VerifyPIN1. Continue? [y/n] ';
-while(<STDIN>){
-	chomp($_);
-	if ($_ eq 'y'){
-		last;
-	}elsif($_ eq 'n'){
-		$hCard->Disconnect();
-		exit;
-	}else{
-	}
-}
+&check_before_verifyPINcode($hCard,"Next step is VerifyPIN1. Continue? [y/n] ");
+#print 'Next step is VerifyPIN1. Continue? [y/n] ';
+#while(<STDIN>){
+#	chomp($_);
+#	if ($_ eq 'y'){
+#		last;
+#	}elsif($_ eq 'n'){
+#		$hCard->Disconnect();
+#		exit;
+#	}else{
+#	}
+#}
 
 # PIN01の照合
 $tmpdata = $VerifyPIN. ' '.join(" ",unpack("H2H2H2H2",$PIN1));
@@ -121,17 +122,19 @@ transmit_code($hCard,$tmpdata,0);
 $tmpdata = $VerifyCount;
 transmit_code($hCard,$tmpdata,1);
 
-print 'Next step is VerifyPIN2. Continue? [y/n] ';
-while(<STDIN>){
-	chomp($_);
-	if ($_ eq 'y'){
-		last;
-	}elsif($_ eq 'n'){
-		$hCard->Disconnect();
-		exit;
-	}else{
-	}
-}
+&check_before_verifyPINcode($hCard,"Next step is VerifyPIN2. Continue? [y/n] ");
+#print 'Next step is VerifyPIN2. Continue? [y/n] ';
+#while(<STDIN>){
+#	chomp($_);
+#	if ($_ eq 'y'){
+#		last;
+#	}elsif($_ eq 'n'){
+#		$hCard->Disconnect();
+#		exit;
+#	}else{
+#	}
+#}
+
 # PIN02の照合
 $tmpdata = $VerifyPIN. ' '.join(" ",unpack("H2H2H2H2",$PIN2));
 transmit_code($hCard,$tmpdata,0);
@@ -160,6 +163,25 @@ transmit_code_str($hCard,$tmpdata,65);
 
 
 $hCard->Disconnect();
+
+sub check_before_verifyPINcode{
+	my ($card) =shift @_;
+	my ($message) = shift @_;
+	
+	print $message;
+	while(<STDIN>){
+		chomp($_);
+		if ($_ eq 'y'){
+			last;
+		}elsif($_ eq 'n'){
+			print "Disconnect.\n";
+			$card->Disconnect();
+			exit;
+		}else{
+			print ">";
+		}
+	}
+}
 
 sub transmit_code
 {
