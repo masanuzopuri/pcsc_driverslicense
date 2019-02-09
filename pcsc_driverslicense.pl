@@ -53,9 +53,9 @@ my $VerifyCount = "00 20 00 80";
 
 my $mfef01 = '2F 01';    # 共通データ
 my $mfief01 = '00 01';   # PIN1
-my $PIN1 = '3654';
+my $PIN1 = '1234';
 my $mfief02 = '00 02';   # PIN2
-my $PIN2 = '1308';
+my $PIN2 = '5678';
 my $df1 = 'A0 00 00 02 31 01 00 00 00 00 00 00 00 00 00 00';
 my $df1ef01 = '00 01';   # 
 my $df1ef02 = '00 02';
