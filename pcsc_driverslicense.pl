@@ -53,9 +53,9 @@ my $VerifyCount = "00 20 00 80";
 
 my $mfef01 = '2F 01';    # 共通データ
 my $mfief01 = '00 01';   # PIN1
-my $PIN1 = '1234';
+my $PIN1 = '3654';
 my $mfief02 = '00 02';   # PIN2
-my $PIN2 = '5678';
+my $PIN2 = '1308';
 my $df1 = 'A0 00 00 02 31 01 00 00 00 00 00 00 00 00 00 00';
 my $df1ef01 = '00 01';   # 
 my $df1ef02 = '00 02';
@@ -216,8 +216,8 @@ sub change_code_readable
 			if($count%2 == 0){
 				for($j=0;$j<$count;$j+=2){
 					$tmp = chr(shift(@{$recv})).chr(shift(@{$recv}));
-#					$data[$tag[$i]] .= Encode::encode('utf8',Encode::decode('jis0208-raw',$tmp));
-					$data[$tag[$i]] .= Encode::from_to($tmp,'jis0208-raw','utf8');
+					$data[$tag[$i]] .= Encode::encode('utf8',Encode::decode('jis0208-raw',$tmp));
+#					$data[$tag[$i]] .= Encode::from_to($tmp,'jis0208-raw','utf8');
 					$tmp='';
 				}#print "$data[$tag[$i]]\n";
 			}else{
