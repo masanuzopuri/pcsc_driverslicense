@@ -53,9 +53,9 @@ my $VerifyCount = "00 20 00 80";
 
 my $mfef01 = '2F 01';    # 共通データ
 my $mfief01 = '00 01';   # PIN1
-my $PIN1 = '3654';
+my $PIN1 = '';
 my $mfief02 = '00 02';   # PIN2
-my $PIN2 = '1308';
+my $PIN2 = '';
 my $df1 = 'A0 00 00 02 31 01 00 00 00 00 00 00 00 00 00 00';
 my $df1ef01 = '00 01';   # 
 my $df1ef02 = '00 02';
@@ -95,21 +95,13 @@ transmit_code($hCard,$tmpdata,0);
 $tmpdata = $VerifyCount;
 transmit_code($hCard,$tmpdata,1);
 
-&check_before_verifyPINcode($hCard,"Next step is VerifyPIN1. Continue? [y/n] ");
-#print 'Next step is VerifyPIN1. Continue? [y/n] ';
-#while(<STDIN>){
-#	chomp($_);
-#	if ($_ eq 'y'){
-#		last;
-#	}elsif($_ eq 'n'){
-#		$hCard->Disconnect();
-#		exit;
-#	}else{
-#	}
-#}
+# PIN1の入力
+&check_before_verifyPINcode($hCard,"PIN1");
+$PIN1 = join(" ", input_pincode("PIN1"));
 
 # PIN01の照合
-$tmpdata = $VerifyPIN. ' '.join(" ",unpack("H2H2H2H2",$PIN1));
+#$tmpdata = $VerifyPIN. ' '.join(" ",unpack("H2H2H2H2",$PIN1));
+$tmpdata = $VerifyPIN. ' '.$PIN1;
 transmit_code($hCard,$tmpdata,0);
 $tmpdata = $VerifyCount;
 transmit_code($hCard,$tmpdata,1);
@@ -122,21 +114,12 @@ transmit_code($hCard,$tmpdata,0);
 $tmpdata = $VerifyCount;
 transmit_code($hCard,$tmpdata,1);
 
-&check_before_verifyPINcode($hCard,"Next step is VerifyPIN2. Continue? [y/n] ");
-#print 'Next step is VerifyPIN2. Continue? [y/n] ';
-#while(<STDIN>){
-#	chomp($_);
-#	if ($_ eq 'y'){
-#		last;
-#	}elsif($_ eq 'n'){
-#		$hCard->Disconnect();
-#		exit;
-#	}else{
-#	}
-#}
+# PIN2の入力
+&check_before_verifyPINcode($hCard,"PIN2");
+$PIN2 = join(" ", input_pincode("PIN2"));
 
 # PIN02の照合
-$tmpdata = $VerifyPIN. ' '.join(" ",unpack("H2H2H2H2",$PIN2));
+$tmpdata = $VerifyPIN. ' '.$PIN2;
 transmit_code($hCard,$tmpdata,0);
 $tmpdata = $VerifyCount;
 transmit_code($hCard,$tmpdata,1);
@@ -164,11 +147,31 @@ transmit_code_str($hCard,$tmpdata,65);
 
 $hCard->Disconnect();
 
+
+sub input_pincode{
+	my($message)=shift @_;
+	print "input $message(4 numbers): ";
+	while(<STDIN>){
+		chomp($_);
+		if($_ =~ /^\d{4}$/){
+			last;
+		}else{
+			print '>';
+		}
+	}
+	my @arr = split (//,$_);
+	@arr =map(unpack("H2",$_), @arr);
+	#foreach (@arr){
+	#	print $_." ";
+	#}print "\n";
+	return @arr;
+}
+
 sub check_before_verifyPINcode{
 	my ($card) =shift @_;
 	my ($message) = shift @_;
 	
-	print $message;
+	print "Next step is Verify$message. Continue? [y/n] ";
 	while(<STDIN>){
 		chomp($_);
 		if ($_ eq 'y'){
