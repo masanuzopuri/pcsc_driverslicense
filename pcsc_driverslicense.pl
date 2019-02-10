@@ -59,6 +59,8 @@ my $PIN2 = '';
 my $df1 = 'A0 00 00 02 31 01 00 00 00 00 00 00 00 00 00 00';
 my $df1ef01 = '00 01';   # 
 my $df1ef02 = '00 02';
+my $df2 = 'A0 00 00 02 31 02 00 00 00 00 00 00 00 00 00 00';
+my $df2ef01 = '00 01';
 #3(2)カ(ア)参照
 #カ 暗証番号、アクセス権限
 #(ｱ)  暗証番号１(PIN 1)
@@ -144,9 +146,46 @@ transmit_code($hCard,$tmpdata,0);
 $tmpdata = $ReadBinary;
 transmit_code_str($hCard,$tmpdata,65);
 
+# 写真の読み出し
+# df2を選択
+$tmpdata = $select_df.' '.$df2;
+transmit_code($hCard,$tmpdata,0);
+
+# df2/ef01を選択
+$tmpdata = $select_ef.' '.$df2ef01;
+transmit_code($hCard,$tmpdata,0);
+
+# 読み出し
+$tmpdata = $ReadBinary;
+$RecvData = transmit_code($hCard,$tmpdata,2);
+output_picture($RecvData);
+
 
 $hCard->Disconnect();
 
+sub output_picture{
+	my($recv)=shift @_;
+	#foreach my $tmp (@{$recv}) {
+	#	printf ("%02X ", $tmp);
+	#} print "\n";
+	shift(@{$recv}); # 5F
+	shift(@{$recv}); # 40
+	shift(@{$recv}); # 82
+	my $maxcount = shift(@{$recv});
+	$maxcount <<= 8;
+	$maxcount += shift(@{$recv});
+	#print $maxcount."\n";
+	open (IMG, ">./picture.jp2") or die;
+	binmode IMG;
+	my $n = 0;
+	foreach (@{$recv}){
+		if($n>$maxcount){
+			last;
+		}
+		printf IMG ("%c" ,$_);
+		$n+=1;
+	}close(IMG);
+}
 
 sub input_pincode{
 	my($message)=shift @_;
@@ -195,15 +234,17 @@ sub transmit_code
 	my $recv;
 	my $tmp;
 	
-	($sw,$recv) = $card->TransmitWithCheck($code, "6E 00", 1);
+	#($sw,$recv) = $card->TransmitWithCheck($code, "6E 00", 1);
+	$recv = $card->Transmit(Chipcard::PCSC::ascii_to_array($code));
 	if($flg==1){
-	warn "TransmitWithCheck: $Chipcard::PCSC::Card::Error" unless defined $sw;
-	#print Chipcard::PCSC::array_to_ascii($recv)."\n";
-	foreach $tmp (@{$recv}) {
-		printf ("%02X ", $tmp);
-	} print "\n";
+		#warn "TransmitWithCheck: $Chipcard::PCSC::Card::Error" unless defined $sw;
+		#print Chipcard::PCSC::array_to_ascii($recv)."\n";
+		foreach $tmp (@{$recv}) {
+			printf ("%02X ", $tmp);
+		} print "\n";
 	}
 	
+	return ($recv);
 }
 sub change_code_readable
 {
