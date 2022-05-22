@@ -12,8 +12,8 @@ my $hCard;
 my @ReadersList;
 my $SendData;
 my $RecvData;
-my $control_code = 0x42000dac;
 # SCardControl with Control Code SCARD_CTL_CODE(3500) 0x42000000|DAC(3500).
+my $control_code = 0x42000dac;
 my @data;
 my $tmpVal;
 
@@ -39,6 +39,8 @@ print $readers_states[0]{'reader_name'}."\n";
 $hCard = new Chipcard::PCSC::Card ($hContext);
 
 ## カード読み込む
+## 他の処理がリーダーを使用するのを許可する
+## プロトコルT0, T1, Raw
 $hCard->Connect($ReadersList[0],$Chipcard::PCSC::SCARD_SHARE_SHARED,$Chipcard::PCSC::SCARD_PROTOCOL_T0|$Chipcard::PCSC::SCARD_PROTOCOL_T1|$Chipcard::PCSC::SCARD_PROTOCOL_RAW);
 
 my $tmpdata = '';
@@ -162,19 +164,32 @@ output_picture($RecvData);
 
 
 $hCard->Disconnect();
+# メインの処理はここまで
 
+# 写真の出力
 sub output_picture{
+	# 引数受け渡し
 	my($recv)=shift @_;
 	#foreach my $tmp (@{$recv}) {
 	#	printf ("%02X ", $tmp);
 	#} print "\n";
+	
+	# 先頭データで余分なByteを除く
+	# タグフィールド DF2/EF01なので2Byte構成
+	# P.2-9セ　写真 タグ"5F40"
 	shift(@{$recv}); # 5F
 	shift(@{$recv}); # 40
+	# 長さフィールド P.2-3
+	# 第1Byte
 	shift(@{$recv}); # 82
+	# 第2-3Byteで値フィールドの長さを指定
 	my $maxcount = shift(@{$recv});
 	$maxcount <<= 8;
 	$maxcount += shift(@{$recv});
 	#print $maxcount."\n";
+	
+	# 出力先のファイルを開く
+	# JPEG2000なので.jp2
 	open (IMG, ">./picture.jp2") or die;
 	binmode IMG;
 	my $n = 0;
@@ -187,18 +202,25 @@ sub output_picture{
 	}close(IMG);
 }
 
+# PIN CODEの入力
 sub input_pincode{
+	# 引数受け渡し
+	# 引数は表示に使用するだけ
 	my($message)=shift @_;
 	print "input $message(4 numbers): ";
+	# 標準入力待ち
 	while(<STDIN>){
 		chomp($_);
+		# 入力が数字4digit以外は入力待ちに戻る
 		if($_ =~ /^\d{4}$/){
 			last;
 		}else{
 			print '>';
 		}
 	}
+	# 数字を一文字ずつ分解して配列に入れる
 	my @arr = split (//,$_);
+	# 配列内の数字をHEX2文字に変換
 	@arr =map(unpack("H2",$_), @arr);
 	#foreach (@arr){
 	#	print $_." ";
@@ -206,20 +228,28 @@ sub input_pincode{
 	return @arr;
 }
 
+# PIN CODE認証の前に認証するか確認するルーチン
 sub check_before_verifyPINcode{
+	# 引数受け渡し
+	# 認証しない場合は終了するのでcard Objectを受け取る
 	my ($card) =shift @_;
+	# メッセージに使用する
 	my ($message) = shift @_;
 	
 	print "Next step is Verify$message. Continue? [y/n] ";
+	# 標準入力待ち
 	while(<STDIN>){
 		chomp($_);
+		# yの場合、次の処理へ移る
 		if ($_ eq 'y'){
 			last;
 		}elsif($_ eq 'n'){
+			# nの場合、終了する
 			print "Disconnect.\n";
 			$card->Disconnect();
 			exit;
 		}else{
+			# それ以外の場合、入力待ちに戻る
 			print ">";
 		}
 	}
