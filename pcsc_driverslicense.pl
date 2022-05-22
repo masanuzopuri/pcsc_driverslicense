@@ -128,38 +128,36 @@ transmit_code($hCard,$tmpdata,0);
 $tmpdata = $VerifyCount;
 transmit_code($hCard,$tmpdata,1);
 
-# df1を選択
+# 記載事項(本籍以外)の読み出し
+# DF1を選択
 $tmpdata = $select_df.' '.$df1;
 transmit_code($hCard,$tmpdata,0);
-
-# df1/ef01を選択
+# DF1/EF01を選択
 $tmpdata = $select_ef.' '.$df1ef01;
 transmit_code($hCard,$tmpdata,0);
-
 # 読み出し
 $tmpdata = $ReadBinary;
 transmit_code_str($hCard,$tmpdata,17);
 
-# df1/ef02を選択
+# 記載事項(本籍)の読み出し
+# DF1/EF02を選択
 $tmpdata = $select_ef.' '.$df1ef02;
 transmit_code($hCard,$tmpdata,0);
-
 # 読み出し
 $tmpdata = $ReadBinary;
 transmit_code_str($hCard,$tmpdata,65);
 
 # 写真の読み出し
-# df2を選択
+# DF2を選択
 $tmpdata = $select_df.' '.$df2;
 transmit_code($hCard,$tmpdata,0);
-
-# df2/ef01を選択
+# DF2/EF01を選択
 $tmpdata = $select_ef.' '.$df2ef01;
 transmit_code($hCard,$tmpdata,0);
-
 # 読み出し
 $tmpdata = $ReadBinary;
 $RecvData = transmit_code($hCard,$tmpdata,2);
+# JPEG2000へ出力
 output_picture($RecvData);
 
 
