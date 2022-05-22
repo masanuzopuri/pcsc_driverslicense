@@ -283,15 +283,21 @@ sub transmit_code
 	# 戻り値は受信コード
 	return ($recv);
 }
+
+# 受信コードを可読可能な文字列に変換するルーチン
 sub change_code_readable
 {
+	# 引数受け渡し
+	# 受信コード
 	my ($recv)=shift;
+	
 	my $tmp;
 	my $count = 0;
 	my $maxcount = 0;
 	my @tag = ();
 	my @data = ();
 	
+	# 受信コード長を取得
 	foreach (@{$recv}){
 		$maxcount++;
 	}
@@ -299,16 +305,27 @@ sub change_code_readable
 	my $i;
 	my $j;
 	for($i = 0;$i < $maxcount;$i++){
+		# P.2-3
+		# タグフィールド
 		$tmp = shift(@{$recv});
+		# 長さフィールド
+		# P.2-6,2-7
+		# 最大データ長はmax80byte
 		$count = shift(@{$recv});
+		# 長さが255byteあると終了
 		if($count == 255){
 			#foreach my $a (@data){
 			#	if(defined $a){print"$a\n";}
 			#}
 			last;
-		}$tag[$i] = $tmp;
+		}
+		# タグフィールドを格納
+		$tag[$i] = $tmp;
+		# タグ0x21 免許証の番号の場合
 		if($tmp==0x21){
+			# バイト長分回す
 			for($j=0;$j<$count;$j++){
+				# タグ0x21に文字列変換して追加
 				$data[$tag[$i]].=chr(shift(@{$recv}));
 			}
 			#print "$data[$tag[$i]]\n";
@@ -316,34 +333,50 @@ sub change_code_readable
 		}
 		$tmp ='';
 		if($count >2){
+			# バイト長が偶数の場合
 			if($count%2 == 0){
+				# 2byteごと読み出す
 				for($j=0;$j<$count;$j+=2){
 					$tmp = chr(shift(@{$recv})).chr(shift(@{$recv}));
+					# JIS0208 xで記載されているのでJIS0208でデコードする
+					# 制定年xは0x11に記載されているが区別なくJIS0208とする
 					$data[$tag[$i]] .= Encode::encode('utf8',Encode::decode('jis0208-raw',$tmp));
 #					$data[$tag[$i]] .= Encode::from_to($tmp,'jis0208-raw','utf8');
 					$tmp='';
 				}#print "$data[$tag[$i]]\n";
 			}else{
+				# バイト長が奇数の場合は元号YYMMDDか照会番号(0x19)
 				for($j=0;$j<$count;$j++){
+					# 1byteごと取り出す
 					$tmp = chr(shift(@{$recv}));
+					# 先頭文字の場合、元号処理
 					if($j==0){
+						# JISコード 48(0x30) = 0なので51(余り3),52(余り4)を指定
+						# 1明治2大正3昭和4平成
 						if($tmp%48==3){
+							# 昭和
 							$data[$tag[$i]] .=Encode::encode('utf-8',"昭和");
 						}elsif($tmp%48==4){
+							# 平成
 							$data[$tag[$i]] .=Encode::encode('utf-8',"平成");
 						}
 					}else{
+						# JIS0201半角文字のため処理せず追加
 						$data[$tag[$i]] .= $tmp;
 					}
 				}#print "$data[$tag[$i]]\n";
 			}
 		}elsif($count==1){
+			# 0x11が該当
 			$data[$tag[$i]]=shift(@{$recv});
 		}elsif($count==0){
+			# 0x00 から 0x10 までは0で埋める
 			$data[$tag[$i]]=0;
 		}else{}
+		# 文字数分進める
 		$i+=$count;
 	}
+	# 戻り値の指定
 	my $tag_ref = \@tag;
 	my $data_ref = \@data;
 	return ($tag_ref,$data_ref);
