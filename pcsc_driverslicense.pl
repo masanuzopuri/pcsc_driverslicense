@@ -384,7 +384,11 @@ sub transmit_code_str
 		}
 	}
 }
+
+# DF1/EF01 のタグ内容を格納した配列を返すルーチン
 sub init_tag_data{
+	# 引数受け渡し
+	# タグを指定 0x11 or 0x41 P.2-6 2-7
 	my $tag_num = shift;
 	my (@tag)=();
 	if($tag_num == 0x11){
@@ -427,5 +431,6 @@ sub init_tag_data{
 	$tag[0x41]='本籍';
 	}
 	
+	# タグ内容配列を返す
 	return (@tag);
 }
