@@ -255,17 +255,25 @@ sub check_before_verifyPINcode{
 	}
 }
 
+# 指定したコードをカードに送信するルーチン
 sub transmit_code
 {
+	# 引数受け渡し
+	# 送信対象のカード
 	my($card) = shift @_;
+	# 送信するコード
 	my($code) = shift;
+	# 受信コードを表示するかのフラグ
 	my($flg) = shift;
+	
 	my $sw;
 	my $recv;
 	my $tmp;
 	
+	# コードを送信
 	#($sw,$recv) = $card->TransmitWithCheck($code, "6E 00", 1);
 	$recv = $card->Transmit(Chipcard::PCSC::ascii_to_array($code));
+	# flgがonなら受信コードを表示する
 	if($flg==1){
 		#warn "TransmitWithCheck: $Chipcard::PCSC::Card::Error" unless defined $sw;
 		#print Chipcard::PCSC::array_to_ascii($recv)."\n";
@@ -274,6 +282,7 @@ sub transmit_code
 		} print "\n";
 	}
 	
+	# 戻り値は受信コード
 	return ($recv);
 }
 sub change_code_readable
