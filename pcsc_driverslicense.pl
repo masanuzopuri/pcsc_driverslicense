@@ -351,22 +351,32 @@ sub change_code_readable
 	return ($tag_ref,$data_ref);
 }
 
+# コードを送信して受信したコードを表示するルーチン
 sub transmit_code_str
 {
+	# 引数受け渡し
+	# card Object
 	my($card) = shift @_;
+	# 送信コード
 	my($code) = shift;
+	# 表示するデータのタグ 0x11 or 0x41
 	my $tag = shift;
+	
 	my $sw;
 	my $recv;
 	
 	#($sw,$recv) = $card->TransmitWithCheck($code, "6E 00", 1);
 	#warn "TransmitWithCheck: $Chipcard::PCSC::Card::Error" unless defined $sw;
 	
+	# コードを送信して受信コードを受け取る
 	$recv = $card->Transmit(Chipcard::PCSC::ascii_to_array($code));
 	#print Chipcard::PCSC::array_to_ascii($recv)."\n";
 	
+	# 表示するデータのタグと内容を初期化
 	my @tagdata = &init_tag_data($tag);
+	# 受信コードを可読可能な文字に変換
 	my ($num,$data)=change_code_readable($recv);
+	# データを表示する
 	foreach my $tmp (@{$num}){
 		if(defined $tmp){
 			print Encode::encode('utf8',$tagdata[$tmp])."\t";
